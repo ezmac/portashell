@@ -29,13 +29,13 @@ USER tad
 RUN DEBIAN_FRONTEND=noninteractive sudo chsh -s $(which zsh)
 
 RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && curl https://raw.githubusercontent.com/Shougo/neobundle.vim/master/bin/install.sh | /bin/bash
-ADD ohmyzsh.sh /home/tad/
+ADD ohmyzsh.sh /home/tad/.ohmyzsh.sh
 
-RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && sudo chmod +x ohmyzsh.sh; sync && ./ohmyzsh.sh
+RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && sudo chmod +x .ohmyzsh.sh; sync && ./.ohmyzsh.sh
 
-RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && git clone https://github.com/ezmac/dotfiles.git
-ADD linkDotfiles.sh /home/tad/
-RUN DEBIAN_FRONTEND=noninteractive cd /home/tad/  && chmod +x linkDotfiles.sh; sync && ./linkDotfiles.sh
+RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && git clone https://github.com/ezmac/dotfiles.git .dotfiles
+ADD linkDotfiles.sh /home/tad/.linkDotfiles.sh
+RUN DEBIAN_FRONTEND=noninteractive cd /home/tad/  && chmod +x .linkDotfiles.sh; sync && ./.linkDotfiles.sh
 WORKDIR /home/tad
 
 
