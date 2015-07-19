@@ -1,11 +1,14 @@
 #!/bin/bash
 ## Adapted slightly from valloric's script. See dockerfile
 
+set -e
 #Compiling Vim from source is actually not that difficult. Here's what you should do:
 
 #First, install all the prerequisite libraries, including Mercurial. For a Debian-like Linux distribution like Ubuntu, that would be the following:
 
-apt-get install -t libncurses5-dev libgnome2-dev libgnomeui-dev libgtk2.0-dev libatk1.0-dev libbonoboui2-dev libcairo2-dev libx11-dev libxpm-dev libxt-dev python-dev ruby-dev mercurial
+#apt-get install -y libncurses5-dev libgnome2-dev libgnomeui-dev libgtk2.0-dev libatk1.0-dev libbonoboui2-dev libcairo2-dev libx11-dev libxpm-dev libxt-dev python-dev ruby-dev mercurial build-essential
+apt-get build-dep -y vim
+apt-get install -y libncurses5-dev python-dev ruby-dev mercurial build-essential
 
 #Remove vim if you have it already.
 
@@ -33,9 +36,8 @@ make VIMRUNTIMEDIR=/usr/share/vim/vim74
 # If you want to be able to easily uninstall the package use checkinstall instead of  make install
 
  apt-get install checkinstall
-cd vim
  checkinstall
-Set vim as your default editor with update-alternatives.
+#Set vim as your default editor with update-alternatives.
 
  update-alternatives --install /usr/bin/editor editor /usr/bin/vim 1
  update-alternatives --set editor /usr/bin/vim
