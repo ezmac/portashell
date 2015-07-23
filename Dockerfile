@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:latest
 MAINTAINER Tad Merchant <system.root@gmail.com>
 
 ## INSTALL SOFTWARE 
@@ -8,8 +8,13 @@ ADD sources.list /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y
 
-# install incron and supervisor
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget curl zsh git tmux
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -f
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  wget 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  curl 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  zsh 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  git 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  tmux
 
 # thanks valloric
 # https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source#
@@ -18,11 +23,14 @@ ADD installVim.sh /root/
 RUN DEBIAN_FRONTEND=noninteractive chmod u+x /root/installVim.sh
 RUN DEBIAN_FRONTEND=noninteractive /root/installVim.sh
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo ruby cmake
+
+RUN DEBIAN_FRONTEND=noninteractive wget -qO- https://get.docker.com/ | sh
 
 RUN adduser --disabled-password --gecos '' tad && adduser tad sudo && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN usermod -aG docker tad
 
-#haha curltobash...
+
 
 
 USER tad
@@ -33,14 +41,18 @@ ADD ohmyzsh.sh /home/tad/.ohmyzsh.sh
 
 RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && sudo chmod +x .ohmyzsh.sh; sync && ./.ohmyzsh.sh
 
-RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && git clone https://github.com/ezmac/dotfiles.git .dotfiles
-ADD linkDotfiles.sh /home/tad/.linkDotfiles.sh
-RUN DEBIAN_FRONTEND=noninteractive cd /home/tad/  && chmod +x .linkDotfiles.sh; sync && ./.linkDotfiles.sh
+RUN DEBIAN_FRONTEND=noninteractive cd /home/tad && git clone https://github.com/ezmac/dotfiles.git .dotfiles && cd .dotfiles&&git checkout mac && ./linkDotfiles.sh
+
 WORKDIR /home/tad
 
+ENV TERM xterm
 
 
-CMD ["/bin/zsh"]
+ADD init.sh /home/tad/.init.sh
+RUN sudo chmod +x /home/tad/.init.sh
+
+ENTRYPOINT "/bin/zsh"
+CMD ["/home/tad/.init.sh"]
 
 
 
