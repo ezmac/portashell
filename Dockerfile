@@ -1,71 +1,41 @@
-FROM debian:latest
-MAINTAINER Tad Merchant <system.root@gmail.com>
+FROM debian:latest as base
+MAINTAINER Tad <system.root@gmail.com>
 
+ARG USER=tad
+ARG UID=1000
 ## INSTALL SOFTWARE 
+WORKDIR /home/$USER/
+
+ADD dotfiles /home/$USER/dotfiles
 
 # do dist upgrade to be on latest debian.
 #ADD sources.list /etc/apt/sources.list
-RUN DEBIAN_FRONTEND=noninteractive apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+  apt-get dist-upgrade -y && \
+  apt-get install -f && \
+  apt-get install -y  curl wget curl zsh git tmux php7.0-cli curl sudo ruby cmake && \
+  adduser --uid $UID --disabled-password --shell $(which zsh) --gecos '' $USER  && \
+  adduser $USER sudo && \
+  bash -c "echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers" && \
+  chown $USER:users /home/$USER -R && \
+  su -l $USER -c "cd /home/$USER/dotfiles && ./go.sh" && \
+  rm -rf /home/$USER/vim/ && sync &&\
+  find /home/$USER/.vim/bundle/ -name .git -type d -prune -exec rm -rf {}  \; && \
+  rm -rf /home/$USER/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp &&\
+  rm -rf /home/$USER/.vim/bundle/YouCompleteMe/third_party/ycmd/third_party/OmniSharpServer &&\
+  apt-get remove -y   build-essential checkinstall dirmngr dpkg-dev fakeroot g++ g++-6 gnupg  && \
+  apt-get install -y libpython2.7 && \
+  rm -rf /var/lib/apt/lists/*
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -f
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  wget 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  curl 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  zsh 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  git
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  tmux
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo ruby cmake
-ARG USER
-
-RUN echo $USER
-### Hmm DIND?
-RUN DEBIAN_FRONTEND=noninteractive wget -qO- https://get.docker.com/ | sh
 
 # if you're on a normal system, 1000 is a good guess for a single user.
-RUN adduser --uid 1000 --disabled-password --gecos '' $USER  && adduser $USER sudo && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN usermod -aG docker $USER
-
-
 
 
 USER $USER
-RUN DEBIAN_FRONTEND=noninteractive sudo chsh -s $(which zsh)
 
 # thanks valloric
 # https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source#
-ADD dotfiles /home/$USER/dotfiles
-
-RUN sudo chown $USER:users /home/$USER -R
-RUN DEBIAN_FRONTEND=noninteractive chmod u+x /home/$USER/dotfiles/installVim.sh
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/installVim.sh
-
-RUN DEBIAN_FRONTEND=noninteractive cd /home/$USER && curl https://raw.githubusercontent.com/Shougo/neobundle.vim/master/bin/install.sh | /bin/bash
-ADD ohmyzsh.sh /home/$USER/.ohmyzsh.sh
-
-RUN DEBIAN_FRONTEND=noninteractive cd /home/$USER && sudo chmod +x .ohmyzsh.sh; sync && ./.ohmyzsh.sh
-
-
-WORKDIR /home/$USER/dotfiles
-
-ENV TERM xterm
-
-
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/installDocker.sh
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/installFZF.sh
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/installNeobundle.sh
-
-
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/installPowerlineFont.sh
-
-RUN DEBIAN_FRONTEND=noninteractive /home/$USER/dotfiles/linkDotfiles.sh
-
-RUN DEBIAN_FRONTEND=noninteractive /bin/bash -c "source /home/$USER/dotfiles/.zshrc" && /bin/bash -c "/home/$USER/dotfiles/installNodenv.sh"
-RUN DEBIAN_FRONTEND=noninteractive /bin/bash -c "source /home/$USER/dotfiles/.zshrc" && /bin/bash -c "/home/$USER/dotfiles/installRbenv.sh"
-WORKDIR /home/$USER/
-
-ENTRYPOINT "/bin/zsh"
 
 
 
+ENTRYPOINT ["/bin/zsh"]
