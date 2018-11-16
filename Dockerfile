@@ -1,4 +1,4 @@
-FROM debian:latest as base
+FROM debian:latest
 MAINTAINER Tad <system.root@gmail.com>
 
 ARG USER=tad
@@ -7,7 +7,7 @@ ARG UID=1000
 WORKDIR /home/$USER/
 
 ADD dotfiles /home/$USER/dotfiles
-
+ENV DEBIAN_FRONTEND=noninteractive
 # do dist upgrade to be on latest debian.
 #ADD sources.list /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
