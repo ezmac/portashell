@@ -8,16 +8,21 @@ WORKDIR /home/$USER/
 
 ADD dotfiles /home/$USER/dotfiles
 ENV DEBIAN_FRONTEND=noninteractive
+
+# make first user able to sudo. common to all containers.
+RUN adduser --uid $UID --disabled-password --shell $(which zsh) --gecos '' $USER  && \
+    adduser $USER sudo && \
+    bash -c "echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers" && \
+    chown $USER:users /home/$USER -R && \
+
 # do dist upgrade to be on latest debian.
 #ADD sources.list /etc/apt/sources.list
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
   apt-get dist-upgrade -y && \
   apt-get install -f && \
-  apt-get install -y  curl wget curl zsh git tmux php7.0-cli curl sudo ruby cmake && \
-  adduser --uid $UID --disabled-password --shell $(which zsh) --gecos '' $USER  && \
-  adduser $USER sudo && \
-  bash -c "echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers" && \
-  chown $USER:users /home/$USER -R && \
+  apt-get install -y  curl wget curl zsh git tmux php7.0-cli curl sudo ruby cmake
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+
   su -l $USER -c "cd /home/$USER/dotfiles && ./go.sh" && \
   rm -rf /home/$USER/vim/ && sync &&\
   find /home/$USER/.vim/bundle/ -name .git -type d -prune -exec rm -rf {}  \; && \
